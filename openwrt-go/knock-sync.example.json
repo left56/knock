@@ -1,0 +1,11 @@
+{
+  "worker_base_url": "",
+  "shared_secret_router": "",
+  "nft_table": "inet fw4",
+  "nft_set_v4_name": "knock_ipv4",
+  "nft_set_v6_name": "knock_ipv6",
+  "long_poll_timeout_sec": 65,
+  "retry_wait_sec": 5,
+  "sync_timeout_sec": 15,
+  "lock_file": "/var/run/knock-sync.lock"
+}

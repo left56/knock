@@ -1,0 +1,49 @@
+#!/bin/sh /etc/rc.common
+
+USE_PROCD=1
+START=95
+STOP=10
+
+SERVICE_NAME="http-knock-sync"
+INSTANCE_NAME="main"
+SCRIPT_PATH="/usr/bin/openwrt-http-knock.sh"
+SCRIPT_MODE="run"
+LOG_STDOUT=1
+LOG_STDERR=1
+
+cleanup_stale_processes() {
+	# Extra safety: if script was started manually before procd,
+	# clear duplicates so only one managed instance remains.
+	local pids
+	pids="$(pgrep -f "${SCRIPT_PATH} ${SCRIPT_MODE}" 2>/dev/null)"
+	if [ -n "${pids}" ]; then
+		echo "${SERVICE_NAME}: stopping stale processes: ${pids}"
+		kill ${pids} 2>/dev/null
+		sleep 1
+	fi
+}
+
+start_service() {
+	if [ ! -x "${SCRIPT_PATH}" ]; then
+		echo "${SERVICE_NAME}: script not found or not executable: ${SCRIPT_PATH}" >&2
+		return 1
+	fi
+
+	cleanup_stale_processes
+	procd_open_instance "${INSTANCE_NAME}"
+	procd_set_param command "${SCRIPT_PATH}" "${SCRIPT_MODE}"
+	procd_set_param respawn 5 10 0
+	procd_set_param stdout "${LOG_STDOUT}"
+	procd_set_param stderr "${LOG_STDERR}"
+	procd_set_param term_timeout 10
+	procd_close_instance
+}
+
+stop_service() {
+	# Handled by procd; keep explicit for clarity.
+	return 0
+}
+
+reload_service() {
+	restart
+}
